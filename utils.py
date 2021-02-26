@@ -1,3 +1,4 @@
+from useragent import random_user_agent
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 from datetime import datetime
@@ -5,6 +6,7 @@ from lxml import etree, html
 from pathlib import Path
 import urllib.request
 import uuid
+import gzip
 import os
 
 
@@ -26,8 +28,11 @@ def download_file(params, headers=None):
         params['original_url'],
         data=None,
         headers=headers if headers else {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                          '(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36'
+                'User-Agent': random_user_agent(),
+                'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate',
+                'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
         }
     )
 
@@ -104,6 +109,21 @@ def fix_links(content):
     data = etree.tostring(tree, pretty_print=False, encoding="utf-8")
 
     return data
+
+
+def get_html(url, headers=None):
+    req = urllib.request.Request(
+        url,
+        data=None,
+        headers=headers if headers else {
+                'User-Agent': random_user_agent(),
+                'Accept': 'text/html,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate',
+                'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+        }
+    )
+    with urllib.request.urlopen(req) as response:
+        return gzip.decompress(response.read()).decode('utf-8')
 
 
 if __name__ == '__main__':
